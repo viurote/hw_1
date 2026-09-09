@@ -7,13 +7,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Main {
-    private static final EmployeeRecordGenerator generator = new EmployeeRecordGenerator(new Faker());
+    private static final FakerEmployeeDataGenerator generator = new FakerEmployeeDataGenerator(new Faker());
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -40,17 +39,14 @@ public class Main {
         }
 
         log.info("Files will be saved to: {}", outputDir.getAbsolutePath());
+
         int recordsCount = ThreadLocalRandom.current().nextInt(10, 101);
-
-
-        List<EmployeeRecord> records = new ArrayList<>();
-
-        for (int i = 0; i < recordsCount; i++){
-            records.add(generator.random());
-        }
+        List<EmployeeRecord> records = generator.generate(recordsCount);
 
         long timestamp = System.currentTimeMillis() / 1000;
         File outputFile = new File(outputDir, timestamp + "_data.txt");
+
+        String jsonContent = EmployeeJsonSerializer.toJson(records);
 
         StringJoiner jsonArray = new StringJoiner(",\n  ", "[\n  ", "\n]");
 
@@ -75,9 +71,8 @@ public class Main {
 
         try {
             Files.writeString(outputFile.toPath(), jsonArray.toString());
-            log.info("Saved {} records to {}", records.size(), outputFile.getName());
-            log.info("Generated records: {}",records.size());
             log.info("Records Json: {}",jsonArray);
+            log.info("Saved {} records to {}", records.size(), outputFile.getName());
         } catch (IOException e) {
             log.error("Failed to write to file: {}", outputFile.getAbsolutePath(), e);
         }
