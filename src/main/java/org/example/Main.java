@@ -48,30 +48,9 @@ public class Main {
 
         String jsonContent = EmployeeJsonSerializer.toJson(records);
 
-        StringJoiner jsonArray = new StringJoiner(",\n  ", "[\n  ", "\n]");
-
-        for (EmployeeRecord r : records) {
-            String jsonObject = String.format(
-                    "{\n" +
-                            "    \"id\": \"%s\",\n" +
-                            "    \"name\": \"%s\",\n" +
-                            "    \"age\": %d,\n" +
-                            "    \"salary\": %d,\n" +
-                            "    \"PROFESSION\": \"%s\"\n" +
-                            "  }",
-                    r.getId(),
-                    r.getName(),
-                    r.getAge(),
-                    r.getSalary(),
-                    r.getProfession()
-            );
-            jsonArray.add(jsonObject);
-        }
-
-
         try {
-            Files.writeString(outputFile.toPath(), jsonArray.toString());
-            log.info("Records Json: {}",jsonArray);
+            Files.writeString(outputFile.toPath(), jsonContent.toString());
+            log.info("Records Json: {}",jsonContent);
             log.info("Saved {} records to {}", records.size(), outputFile.getName());
         } catch (IOException e) {
             log.error("Failed to write to file: {}", outputFile.getAbsolutePath(), e);
