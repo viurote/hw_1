@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 //{ "id": UUID,
 // "name": string,
@@ -16,9 +16,9 @@ import java.util.UUID;
 // "PROFESSION": (ARTIST,IT,ACCOUNTANT) }
 
 public class Main {
+    private static final EmployeeRecordGenerator generator = new EmployeeRecordGenerator(new Faker());
 
     private static final Logger log = LoggerFactory.getLogger(Main.class);
-    private static Faker faker = new Faker();
 
     public static void main(String[] args) {
 
@@ -46,24 +46,28 @@ public class Main {
         log.info("Files will be saved to: {}", outputDir.getAbsolutePath());
 
 
-        int recordsCount = faker.number().numberBetween(10,101);
+        //int recordsCount = faker.number().numberBetween(10,101);
+        int recordsCount = ThreadLocalRandom.current().nextInt(10, 101);
+
 
         List<EmployeeRecord> records = new ArrayList<>();
 
         for (int i = 0; i < recordsCount; i++){
-            records.add(generateRandomEmployee(faker));
+            //records.add(generateRandomEmployee(faker));
+            //records.add(EmployeeRecord.random(faker));
+            records.add(generator.random());
         }
         log.info("Generated records: {}",recordsCount);
         log.info("Records List: {}",records);
         }
 
-        private static EmployeeRecord generateRandomEmployee(Faker faker) {
-        return new EmployeeRecord(
-                UUID.randomUUID(),
-                faker.name().fullName(),
-                faker.number().numberBetween(18,65),
-                faker.number().numberBetween(1500,7500),
-                faker.options().option(Profession.class)
-        );
-        }
+//        private static EmployeeRecord generateRandomEmployee(Faker faker) {
+//        return new EmployeeRecord(
+//                UUID.randomUUID(),
+//                faker.name().fullName(),
+//                faker.number().numberBetween(18,65),
+//                faker.number().numberBetween(1500,7500),
+//                faker.options().option(Profession.class)
+//        );
 }
+
