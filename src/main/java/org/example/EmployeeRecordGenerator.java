@@ -4,7 +4,7 @@ import net.datafaker.Faker;
 
 import java.util.UUID;
 
-public class EmployeeRecordGenerator {
+public class EmployeeRecordGenerator  {
     private final Faker faker;
 
     public EmployeeRecordGenerator(Faker faker) {

@@ -5,15 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.concurrent.ThreadLocalRandom;
-
-//{ "id": UUID,
-// "name": string,
-// "age" : int,
-// "salary" : int,
-// "PROFESSION": (ARTIST,IT,ACCOUNTANT) }
 
 public class Main {
     private static final EmployeeRecordGenerator generator = new EmployeeRecordGenerator(new Faker());
@@ -21,7 +18,6 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {
-
         if (args.length < 1) {
             log.error("Target directory is not specified! Usage: java Main <output_dir_path>");
             System.exit(1);
@@ -44,30 +40,47 @@ public class Main {
         }
 
         log.info("Files will be saved to: {}", outputDir.getAbsolutePath());
-
-
-        //int recordsCount = faker.number().numberBetween(10,101);
         int recordsCount = ThreadLocalRandom.current().nextInt(10, 101);
 
 
         List<EmployeeRecord> records = new ArrayList<>();
 
         for (int i = 0; i < recordsCount; i++){
-            //records.add(generateRandomEmployee(faker));
-            //records.add(EmployeeRecord.random(faker));
             records.add(generator.random());
         }
-        log.info("Generated records: {}",recordsCount);
-        log.info("Records List: {}",records);
+
+        long timestamp = System.currentTimeMillis() / 1000;
+        File outputFile = new File(outputDir, timestamp + "_data.txt");
+
+        StringJoiner jsonArray = new StringJoiner(",\n  ", "[\n  ", "\n]");
+
+        for (EmployeeRecord r : records) {
+            String jsonObject = String.format(
+                    "{\n" +
+                            "    \"id\": \"%s\",\n" +
+                            "    \"name\": \"%s\",\n" +
+                            "    \"age\": %d,\n" +
+                            "    \"salary\": %d,\n" +
+                            "    \"PROFESSION\": \"%s\"\n" +
+                            "  }",
+                    r.getId(),
+                    r.getName(),
+                    r.getAge(),
+                    r.getSalary(),
+                    r.getProfession()
+            );
+            jsonArray.add(jsonObject);
         }
 
-//        private static EmployeeRecord generateRandomEmployee(Faker faker) {
-//        return new EmployeeRecord(
-//                UUID.randomUUID(),
-//                faker.name().fullName(),
-//                faker.number().numberBetween(18,65),
-//                faker.number().numberBetween(1500,7500),
-//                faker.options().option(Profession.class)
-//        );
+
+        try {
+            Files.writeString(outputFile.toPath(), jsonArray.toString());
+            log.info("Saved {} records to {}", records.size(), outputFile.getName());
+            log.info("Generated records: {}",records.size());
+            log.info("Records Json: {}",jsonArray);
+        } catch (IOException e) {
+            log.error("Failed to write to file: {}", outputFile.getAbsolutePath(), e);
+        }
+    }
 }
 
