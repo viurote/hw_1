@@ -4,6 +4,7 @@ import net.datafaker.Faker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class FakerEmployeeDataGenerator implements DataGenerator<EmployeeRecord>{
@@ -24,6 +25,7 @@ public class FakerEmployeeDataGenerator implements DataGenerator<EmployeeRecord>
                     faker.number().numberBetween(18, 65),
                     faker.number().numberBetween(1500, 7500),
                     faker.options().option(Profession.class)
+                    //faker.selection().oneOf(Profession.class)
             ));
         }
         return records;
