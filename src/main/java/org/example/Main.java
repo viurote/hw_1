@@ -13,25 +13,26 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-
     private static final Logger log = LoggerFactory.getLogger(Main.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper MAPPER = new ObjectMapper(); //.enable(SerializationFeature.INDENT_OUTPUT)
     private static final String TARGET_EMAIL = "dmitriy.kst2@gmail.com";
 
     public static void main(String[] args) {
         if (args.length < 3) {
-            log.error("Укажите параметры: <папка с файлами> <папка для отчетов> <токен>");
+            log.error("Parametres: <input directory> <output directory> <TOKEN>");
             return;
         }
 
-        Path inputDir = Path.of(args[0]);
-        Path outputDir = Path.of(args[1]);
+        Path inputDir = Path.of(args[0]); // путь к файлам .txt
+        Path outputDir = Path.of(args[1]); // путь к отчетам
         String token = args[2];
 
         try {
@@ -39,12 +40,12 @@ public class Main {
             EmailNotificationService emailService = new EmailNotificationService(token);
 
             try (Stream<Path> files = Files.list(inputDir)) {
-                List<Path> jsonFiles = files
+                List<Path> txtFiles = files
                         .filter(Files::isRegularFile)
-                        .filter(p -> p.getFileName().toString().endsWith(".json"))
+                        .filter(p -> p.getFileName().toString().endsWith(".txt"))
                         .toList();
 
-                for (Path file : jsonFiles) {
+                for (Path file : txtFiles) {
                     Path reportFile = outputDir.resolve("analytics_" + file.getFileName());
 
                     if (Files.exists(reportFile)) {
@@ -64,21 +65,43 @@ public class Main {
         try {
             log.info("Обрабатываем: {}", file.getFileName());
 
+            // 1. Читаем JSON https://www.baeldung.com/jackson-object-mapper-tutorial#4-creating-a-java-list-from-a-json-array-string
             List<Employee> employees = MAPPER.readValue(file.toFile(), new TypeReference<>() {});
 
-            Map<String, List<Employee>> byProfession = employees.stream()
-                    .filter(e -> e.profession() != null)
-                    .collect(Collectors.groupingBy(Employee::profession));
+            Map<String, List<Employee>> employeesByProfession = new HashMap<>();
 
-            List<ProfessionAnalytics> report = byProfession.entrySet().stream()
-                    .map(entry -> {
-                        List<Employee> group = entry.getValue();
-                        int avgSalary = (int) Math.round(group.stream().mapToInt(Employee::salary).average().orElse(0));
-                        int avgAge = (int) Math.round(group.stream().mapToInt(Employee::age).average().orElse(0));
+            for (Employee emp : employees) {
+                if (emp.profession() == null) {
+                    continue;
+                }
 
-                        return new ProfessionAnalytics(entry.getKey(), avgSalary, avgAge);
-                    })
-                    .toList();
+                if (!employeesByProfession.containsKey(emp.profession())) {
+                    employeesByProfession.put(emp.profession(), new ArrayList<>());
+                }
+
+                employeesByProfession.get(emp.profession()).add(emp);
+            }
+
+            List<ProfessionAnalytics> report = new ArrayList<>();
+
+            for (Map.Entry<String, List<Employee>> entry : employeesByProfession.entrySet()) {
+                String profession = entry.getKey();
+                List<Employee> group = entry.getValue();
+
+                long totalSalary = 0;
+                long totalAge = 0;
+
+                for (Employee emp : group) {
+                    totalSalary += emp.salary();
+                    totalAge += emp.age();
+                }
+
+                int count = group.size();
+                int avgSalary = Math.round((float) totalSalary / count);
+                int avgAge = Math.round((float) totalAge / count);
+
+                report.add(new ProfessionAnalytics(profession, avgSalary, avgAge));
+            }
 
             byte[] reportBytes = MAPPER.writeValueAsBytes(report);
 
