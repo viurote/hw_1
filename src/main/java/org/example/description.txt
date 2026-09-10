@@ -1,0 +1,160 @@
+ОПИСАНИЕ КОДОВОЙ БАЗЫ
+=====================
+
+Проект: Analytics Program (hw_1)
+Язык: Java 21+
+Сборка: Gradle + Shadow JAR (fat-jar)
+Email API: Mailjet (через Spring RestTemplate)
+
+=======================================================
+СТРУКТУРА ПАКЕТОВ
+=======================================================
+
+org.example
+├── Main.java                          — Точка входа программы
+├── EmailNotificationService.java      — Отправка email через Mailjet API
+└── analytics/
+    ├── AnalyticsRunner.java           — Главный оркестратор аналитики
+    ├── DataParser.java                — Парсинг входных JSON-файлов
+    ├── AggregationService.java        — Агрегация данных по профессиям
+    ├── FileTracker.java               — Отслеживание обработанных файлов
+    └── model/
+        ├── Employee.java              — Модель записи из входного файла
+        └── ProfessionStats.java       — Модель результата аналитики
+
+=======================================================
+ОПИСАНИЕ КЛАССОВ
+=======================================================
+
+Main.java
+---------
+Точка входа программы. Принимает 4 аргумента командной строки:
+  1. inputDir   — папка с входными файлами (от программы-генератора)
+  2. outputDir  — папка для сохранения результатов аналитики
+  3. emailToken — токен авторизации Mailjet API (не хранить в коде!)
+  4. toEmail    — адрес получателя email
+Создаёт AnalyticsRunner и запускает run().
+
+Запуск:
+  java -jar build/libs/gradle_based-all.jar <inputDir> <outputDir> <emailToken> <toEmail>
+
+---
+
+EmailNotificationService.java
+------------------------------
+Сервис отправки email через Mailjet REST API (v3.1).
+Конструктор принимает authToken.
+Метод sendEmail(toEmail, content, reportBytes, attachmentFileName):
+  - Формирует JSON-тело запроса с вложением (Base64)
+  - Отправляет POST на https://api.mailjet.com/v3.1/send
+  - Адрес отправителя: isicju@gmail.com (Automated bot)
+  - Тема письма: "Results of analytics"
+
+---
+
+analytics/AnalyticsRunner.java
+--------------------------------
+Главный оркестратор. Выполняет полный цикл обработки:
+  1. Сканирует inputDir на наличие файлов
+  2. Пропускает файлы, уже отмеченные в FileTracker
+  3. Для каждого нового файла:
+     a. Парсит через DataParser
+     b. Агрегирует через AggregationService
+     c. Сохраняет результат JSON в outputDir (<имя>_analytics.json)
+     d. Отправляет email с вложением через EmailNotificationService
+     e. Отмечает файл как обработанный в FileTracker
+
+---
+
+analytics/DataParser.java
+--------------------------
+Парсит входной JSON-файл (массив объектов Employee) с помощью
+Jackson ObjectMapper. Возвращает List<Employee>.
+
+Формат входного файла:
+[
+  { "id": "...", "name": "...", "age": 30, "salary": 5000, "PROFESSION": "IT" },
+  ...
+]
+
+---
+
+analytics/AggregationService.java
+-----------------------------------
+Группирует список Employee по полю PROFESSION.
+Для каждой группы вычисляет:
+  - average_salary (округлённое среднее)
+  - average_age    (округлённое среднее)
+Возвращает List<ProfessionStats>, отсортированный по имени профессии.
+
+Поддерживаемые профессии: ARTIST, IT, ACCOUNTANT (и любые другие).
+
+---
+
+analytics/FileTracker.java
+----------------------------
+Хранит список уже обработанных файлов в файле .processed_files
+(находится в outputDir). При каждом запуске программы загружает
+список из файла, чтобы не обрабатывать файлы повторно.
+
+Методы:
+  - isAlreadyProcessed(fileName) — проверить, был ли файл обработан
+  - markAsProcessed(fileName)    — добавить файл в список обработанных
+
+---
+
+analytics/model/Employee.java
+-------------------------------
+POJO-модель одной записи из входного файла.
+Поля: id (String), name (String), age (int), salary (int), profession (String).
+Аннотация @JsonProperty("PROFESSION") обеспечивает маппинг из JSON.
+
+---
+
+analytics/model/ProfessionStats.java
+--------------------------------------
+POJO-модель результата аналитики по одной профессии.
+Поля: profession, averageSalary, averageAge.
+Сериализуется в JSON как:
+  { "PROFESSION": "IT", "average_salary": 5200, "average_age": 32 }
+
+=======================================================
+ФОРМАТ ФАЙЛОВ
+=======================================================
+
+Входной файл (от программы-генератора):
+  Имя: <timestamp>_data.txt
+  Формат: JSON-массив объектов Employee
+
+Выходной файл (результат аналитики):
+  Имя: <timestamp>_data_analytics.json
+  Формат: JSON-массив объектов ProfessionStats
+
+Файл трекера:
+  Имя: .processed_files (в папке outputDir)
+  Формат: список имён обработанных файлов, по одному на строку
+
+=======================================================
+ЗАВИСИМОСТИ (build.gradle)
+=======================================================
+
+- org.slf4j / logback-classic         — логирование
+- org.projectlombok:lombok            — @Data, @AllArgsConstructor
+- org.springframework.boot:spring-boot-starter-web — RestTemplate для Mailjet
+- com.fasterxml.jackson.core:jackson-databind      — JSON парсинг / сериализация
+- org.junit.jupiter (test)            — unit-тесты
+
+Сборка fat-jar: плагин com.gradleup.shadow -> gradle_based-all.jar
+
+=======================================================
+ВАЖНЫЕ ЗАМЕЧАНИЯ
+=======================================================
+
+1. Токен Mailjet НИКОГДА не хардкодится в коде — передаётся только
+   через аргумент командной строки.
+
+2. Папки output/, analytics_output/, файлы *_analytics.json и
+   .processed_files добавлены в .gitignore.
+
+3. Файл отмечается как обработанный ТОЛЬКО после успешной отправки email.
+   Если email не отправился — при следующем запуске файл будет обработан снова.

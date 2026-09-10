@@ -19,7 +19,7 @@ public class EmailNotificationService {
         this.authToken = authToken;
     }
 
-    public void sendEmail(String toEmail, String content, byte[] reportBytes) {
+    public void sendEmail(String toEmail, String content, byte[] reportBytes, String attachmentFileName) {
 
         RestTemplate restTemplate = new RestTemplate();
 
@@ -36,7 +36,7 @@ public class EmailNotificationService {
 
         Map<String, Object> attachment = new LinkedHashMap<>();
         attachment.put("ContentType", "text/plain");
-        attachment.put("Filename", "hi.txt");
+        attachment.put("Filename", attachmentFileName);
         attachment.put("Base64Content", base64Content);
 
         Map<String, Object> from = new LinkedHashMap<>();

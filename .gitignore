@@ -39,3 +39,9 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### Project-specific: generated data & analytics results ###
+output/
+analytics_output/
+*_analytics.json
+.processed_files

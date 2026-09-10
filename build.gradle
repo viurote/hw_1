@@ -2,8 +2,6 @@ plugins {
     id 'java'
     id 'application'
     id 'com.gradleup.shadow' version '8.3.5'
-    id 'org.springframework.boot' version '3.5.7'
-    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'org.example'
@@ -21,13 +19,11 @@ dependencies {
     implementation 'org.slf4j:slf4j-api:2.0.16'
     implementation 'ch.qos.logback:logback-classic:1.5.7'
 
-    compileOnly("org.projectlombok:lombok:1.18.42")
-    annotationProcessor("org.projectlombok:lombok:1.18.42")
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-
     compileOnly("org.projectlombok:lombok:1.18.48")
     annotationProcessor("org.projectlombok:lombok:1.18.48")
+
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.0'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
