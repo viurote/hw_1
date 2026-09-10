@@ -46,7 +46,7 @@ public class Main {
                         .toList();
 
                 for (Path file : txtFiles) {
-                    Path reportFile = outputDir.resolve("analytics_" + file.getFileName());
+                    Path reportFile = outputDir.resolve("analytics_" + file.getFileName().toString().replace(".txt", ".json"));
 
                     if (Files.exists(reportFile)) {
                         log.info("Файл {} уже был обработан ранее, пропускаем.", file.getFileName());
@@ -107,7 +107,7 @@ public class Main {
 
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String body = "Обработан файл: " + file.getFileName() + "\nВремя обработки: " + time;
-            emailService.sendEmail(TARGET_EMAIL, body, reportBytes);
+            emailService.sendEmail(TARGET_EMAIL, body, reportFile.getFileName().toString(), reportBytes);
 
             Files.write(reportFile, reportBytes);
 
