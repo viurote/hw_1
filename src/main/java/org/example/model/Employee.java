@@ -3,10 +3,10 @@ package org.example.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.UUID;
 
-public record EmployeeRecord(
+public record Employee(
         UUID id,
         String name,
         int age,
         int salary,
-        @JsonProperty("PROFESSION") Profession profession
+        @JsonProperty("PROFESSION") String profession
 ) {}
