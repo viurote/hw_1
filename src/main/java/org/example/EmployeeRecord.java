@@ -1,7 +1,6 @@
 package org.example;
 
 import lombok.Getter;
-import net.datafaker.Faker;
 
 import java.util.UUID;
 
@@ -13,15 +12,6 @@ public class EmployeeRecord {
         this.age = age;
         this.salary = salary;
         this.profession = profession;
-    }
-    public static EmployeeRecord random(Faker faker) {
-        return new EmployeeRecord(
-                UUID.randomUUID(),
-                faker.name().fullName(),
-                faker.number().numberBetween(18, 65),
-                faker.number().numberBetween(1500, 7500),
-                faker.options().option(Profession.class)
-        );
     }
 
     private final UUID id;
@@ -41,4 +31,14 @@ public class EmployeeRecord {
                 ", profession='" + profession + '\'' +
                 '}';
     }
+
+//    public static EmployeeRecord random(Faker faker) {
+//        return new EmployeeRecord(
+//                UUID.randomUUID(),
+//                faker.name().fullName(),
+//                faker.number().numberBetween(18, 65),
+//                faker.number().numberBetween(1500, 7500),
+//                faker.options().option(Profession.class)
+//        );
+//    }
 }
