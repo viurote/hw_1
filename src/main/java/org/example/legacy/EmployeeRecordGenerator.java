@@ -1,6 +1,8 @@
-package org.example;
+package org.example.legacy;
 
 import net.datafaker.Faker;
+import org.example.EmployeeRecord;
+import org.example.Profession;
 
 import java.util.UUID;
 

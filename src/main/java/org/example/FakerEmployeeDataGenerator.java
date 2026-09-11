@@ -4,7 +4,6 @@ import net.datafaker.Faker;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 public class FakerEmployeeDataGenerator implements DataGenerator<EmployeeRecord>{

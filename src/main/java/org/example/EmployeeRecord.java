@@ -1,9 +1,11 @@
 package org.example;
 
+import lombok.Getter;
 import net.datafaker.Faker;
 
 import java.util.UUID;
 
+@Getter
 public class EmployeeRecord {
     public EmployeeRecord(UUID id, String name, int age, int salary, Profession profession) {
         this.id = id;
@@ -22,12 +24,12 @@ public class EmployeeRecord {
         );
     }
 
-    private UUID id;
-    private String name;
-    private int age;
-    private int salary;
+    private final UUID id;
+    private final String name;
+    private final int age;
+    private final int salary;
 
-    private Profession profession;
+    private final Profession profession;
 
     @Override
     public String toString() {
@@ -38,45 +40,5 @@ public class EmployeeRecord {
                 ", salary=" + salary +
                 ", profession='" + profession + '\'' +
                 '}';
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public void setAge(int age) {
-        this.age = age;
-    }
-
-    public int getSalary() {
-        return salary;
-    }
-
-    public void setSalary(int salary) {
-        this.salary = salary;
-    }
-
-    public Profession getProfession() {
-        return profession;
-    }
-
-    public void setProfession(Profession profession) {
-        this.profession = profession;
     }
 }
